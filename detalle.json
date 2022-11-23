@@ -1,0 +1,18 @@
+[
+    {
+    "id": 1,
+    "descripcion":"milanesa con papas",
+    "tipo":"comida",
+    "timePreparacion":"200",
+    "estado": "en Preparacion",
+    "precio":1200
+    },
+    {
+    "id": 2,
+    "descripcion":"Margarita",
+    "tipo":"Trago",
+    "timePreparacion":"60",
+    "estado": "en Preparacion",
+    "precio":500
+    }
+]

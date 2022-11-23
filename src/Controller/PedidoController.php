@@ -16,6 +16,7 @@ class PedidoController
         $usr->mesaId=$mesa;
         $usr->CalcularTotal();
         $usr->ValidarEstado();
+        $usr->generaCodigo5();
         //$usr->total=2000;
         //$usr->estado="en Preparacion";
 

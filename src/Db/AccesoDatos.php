@@ -12,7 +12,7 @@ class AccesoDatos
     private function __construct()
     {
         try {
-            $this->objetoPDO = new PDO('mysql:host='."u3r5w4ayhxzdrw87.cbetxkdyhwsb.us-east-1.rds.amazonaws.com".';dbname='. "jv7ua7cpuh4xgpb1".';charset=utf8', "rw6gxicn1o6pjax0", "rmf59xzfys7p5x24", array(PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
+            $this->objetoPDO = new PDO('mysql:host='."localhost".';dbname='. "tp_integrador".';charset=utf8', "root", "", array(PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
             $this->objetoPDO->exec("SET CHARACTER SET utf8");
         } catch (PDOException $e) {
             print "Error: " . $e->getMessage();

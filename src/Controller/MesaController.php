@@ -1,23 +1,26 @@
 <?php
 namespace App\Controller;
+use App\Model\Usuario;
 use App\Model\Mesa;
+use App\Model\Pedido;
+use App\Model\Informes30;
 
 class MesaController 
 {
     public  function CrearUno($request, $response, $args)
     {
-        $parametros = $request->getParsedBody();
-
-        $estado = $parametros['estado'];
-        
-
         // Creamos la mesa
         $mesa = new Mesa();
-        $mesa->CreateInDB();
+        $accion=$mesa->CreateInDB();
+
+        $header = $request->getHeaderLine('Authorization');
+        if(!empty($header)){
+        $data=AutentificadorJWT::ObtenerData($header);
+        $registro=new Registro($data->id,$accion);
+        $registro->GuardarEnDB();
+        }
 
         $payload = json_encode(array("mensaje" => "MESA creada con exito"));
-        echo $payload;
-        die;
         $response->getBody()->write($payload);
         return $response
           ->withHeader('Content-Type', 'application/json');
@@ -27,6 +30,31 @@ class MesaController
     {
         $lista=Mesa::TraerTodos();
         $payload = json_encode(array("listaMesas" => $lista));///recupera
+        $response->getBody()->write($payload);//escribe
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+    public function CerrarUnaMesa($request, $response, $args){
+        $parametros = $request->getParsedBody();
+        Mesa::CambiarEstadoMesa($parametros["mesa"],"Cerrada");
+
+        $header = $request->getHeaderLine('Authorization');
+        if(!empty($header)){
+        $data=AutentificadorJWT::ObtenerData($header);
+        $registro=new Registro($data->id,"el usuario ha cerrado la mesa". $parametros["mesa"]);
+        $registro->GuardarEnDB();
+        }
+
+        $payload = json_encode(array("mensaje" => "MESA cerrada"));
+        $response->getBody()->write($payload);//escribe
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+    public function Testeos($request, $response, $args){
+        //Pedido::CrearConArchivoCSV($_FILES["test"]["tmp_name"]);
+        
+        //Pedido::DescargarDatosEnCSV("TESTEANDOEscribirPedido.CSV");
+        //$aux=Informes30::MesaMasUsada();
+
+        $payload = json_encode(array("mensaje" => $aux));
         $response->getBody()->write($payload);//escribe
         return $response->withHeader('Content-Type', 'application/json');
     }

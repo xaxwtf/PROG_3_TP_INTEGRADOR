@@ -39,8 +39,13 @@ class UsuarioController
     public function TraerUno($request, $response, $args)
     {
         // Buscamos usuario por nombre
-        $usr = $args['id'];
+        $usr = $args['usuario'];
         $usuario = Usuario::TraerUno($usr);
+
+        echo "HACIENDO TEST\n";
+        var_dump($args);
+        echo $usr;
+        echo "\nfin del test!\n";
         $payload = json_encode($usuario);
 
 

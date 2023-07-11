@@ -57,7 +57,7 @@ class Usuario{
         $consulta = $objAccesoDatos->prepararConsulta("SELECT id, fullName, rol, password, user FROM users  where id= :id");
         $consulta->bindValue(':id',$id, PDO::PARAM_INT);
         $consulta->execute();
-        return $consulta->fetch(PDO::FETCH_ASSOC);
+        return $consulta->fetch(PDO::FETCH_CLASS, 'Usuario');
     }
    
     public static function TraerUnoxUserAndPass($user,$pass){

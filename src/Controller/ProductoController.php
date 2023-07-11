@@ -10,16 +10,34 @@ class ProductoController
     {
         
         $accion;
+        $mensaje="Usuario creado con exito";
         // Creamos el Producto
         if(isset($_FILES["data"])){
             $accion=Producto::CrearConArchivoCSV($_FILES["data"]["tmp_name"]);
         }
         else{
+                      
             $parametros = $request->getParsedBody();
-            $descripcion = $parametros['descripcion'];
-            $tipo=$parametros['categoria'];
-            $timePrepacion=$parametros['timePreparacion'];
-            $precio=$parametros['precio'];
+            $descripcion;
+            $tipo;
+            $timePrepacion;
+            $precio;
+            $producto;
+            $accion;
+
+            if(isset($parametros['descripcion'])){
+                $descripcion = $parametros['descripcion'];
+                
+            }
+            if(isset($parametros['categoria'])){
+                $tipo=$parametros['categoria'];
+            }
+            if(isset($parametros['timePreparacion'])){
+                $timePrepacion=$parametros['timePreparacion'];
+            }
+            if(isset($parametros['precio'])){
+                $precio=$parametros['precio'];
+            }
             $producto = new Producto($descripcion,$tipo,$timePrepacion,$precio);
             $accion=$producto->CreateInDB();
         }
@@ -32,12 +50,11 @@ class ProductoController
         $registro->GuardarEnDB();
         }
 
-        $payload = json_encode(array("mensaje" => "Usuario creado con exito"));
+        $payload = json_encode(array("mensaje" => $mensaje));
         echo $payload;
         die;
         $response->getBody()->write($payload);
-        return $response
-          ->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public  function TraerTodos($request, $response, $args)

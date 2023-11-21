@@ -15,8 +15,10 @@ class PedidoController
         if(isset($_FILES["data"])){
             $accion=Pedido::CrearConArchivoCSV($_FILES["data"]["tmp_name"]);
             $mostra=$accion;
+            
         }
-        else{
+        else if( isset($_POST["detalle"]) && isset($_POST["mesaId"]) && isset($_POST["cliente"])){
+
             $parametros = $request->getParsedBody();
             $detalle = $parametros['detalle'];
             $mesa=$parametros['mesaId'];
@@ -32,10 +34,21 @@ class PedidoController
             $accion=$pedido->CreateInDB();
             $mostra=$pedido;
         }
+        else{
+
+            $accion= "Se Ha Intentado Dar de Alta Un Producto, pero hubo un Error!";
+            $mostra="\n Error, Adjunte un archivo u mande todos los Parametros\n";
+            
+        }
         if(isset($_FILES["imagen"])){
             $newNameFile=date("Y-m-d H:i:s") .".". pathinfo($_FILES["imagen"]["name"], PATHINFO_EXTENSION);
             $destino = "./Imagenes/" . $newNameFile;
             move_uploaded_file($_FILES["imagen"]["tmp_name"], $destino);
+        }
+        else{
+            
+            $destino = "N/A";
+            
         }
 
 
@@ -80,7 +93,7 @@ class PedidoController
         $p = $parametros['codAlf'];
         $recuperado=Pedido::EntregarPedido($p);
         $total=Pedido::ObtenerTotal($recuperado->id);
-        var_dump($total);
+        
         $header = $request->getHeaderLine('Authorization');
         if(!empty($header)){
         $data=AutentificadorJWT::ObtenerData($header);

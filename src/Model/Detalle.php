@@ -16,6 +16,7 @@ class Detalle{
         $consulta->bindValue(':id_producto', $idProducto, PDO::PARAM_INT);
         $consulta->bindValue(':estado',"pendiente",PDO::PARAM_STR);
         $consulta->execute();
+        
     }
     public static function RecuperarDetalle($idPedido){
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
@@ -35,7 +36,7 @@ class Detalle{
         where detalle.id_pedido=:idP and detalle.estado= 'pendiente'");
         $consulta->bindValue(':idP',$idPedido, PDO::PARAM_INT);
         $consulta->execute();
-        $recuperado=$consulta->fetchAll(PDO::FETCH_CLASS);
+        $recuperado=$consulta->fetchAll(PDO::FETCH_CLASS,"App\Model\Detalle");
         return $recuperado;
     }
     public static function RecuperarDetalleListo($idProducto){
@@ -45,7 +46,7 @@ class Detalle{
         where tp_integrador detalle.id_pedido=:idP and detalle.estado= 'listo' ");
         $consulta->bindValue(':idP',$idProducto, PDO::PARAM_INT);
         $consulta->execute();
-        $recuperado=$consulta->fetchAll(PDO::FETCH_CLASS);
+        $recuperado=$consulta->fetchAll(PDO::FETCH_CLASS,"App\Model\Detalle");
         return $recuperado;
     }
 
@@ -56,7 +57,7 @@ class Detalle{
         where productos.categoria = :cat and detalle.estado= 'pendiente' ");
         $consulta->bindValue(':cat', $categoriaProducto, PDO::PARAM_STR);
         $consulta->execute();
-        return $consulta->fetchAll(PDO::FETCH_OBJ);
+        return $consulta->fetchAll(PDO::FETCH_CLASS, "App\Model\Detalle");
     }
     public static function TomarPrimerPendienteDeCategoria($categoriaProducto){
         $objAccesoDatos= AccesoDatos::obtenerInstancia();
@@ -65,8 +66,9 @@ class Detalle{
         where productos.categoria=:cat  and detalle.estado = 'pendiente'" );
         $consulta->bindValue(":cat",$categoriaProducto, PDO::PARAM_STR);
         $consulta->execute();
-        $r= $consulta->fetch(PDO::FETCH_OBJ);
-        return $r;
+        $consulta->setFetchMode(PDO::FETCH_CLASS, 'App\Model\Detalle');
+        return $consulta->fetch();
+        
     }
     public static function NotificarFinalizacionDeProducto($id){
         $objAccesoDatos = AccesoDatos::obtenerInstancia();

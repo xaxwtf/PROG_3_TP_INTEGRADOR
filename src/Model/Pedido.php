@@ -56,9 +56,8 @@ class Pedido{
     }
 
     public function CreateInDB(){
-        
-
             $this->CalcularTiempoEsperado();
+            //$this->fecha_emision= date("Y-m-d H:i:s");
             $objAccesoDatos = AccesoDatos::obtenerInstancia();
             $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO pedidos (mesaid, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion) VALUES ( :mesaId, :cliente, :estado, :codigoAlfa, :tiempoPreparacion, :emision, :final)");
             $consulta->bindValue(':mesaId', $this->mesaId, PDO::PARAM_INT);
@@ -69,10 +68,11 @@ class Pedido{
             $consulta->bindValue(':emision', $this->fecha_emision, PDO::PARAM_STR);
             $consulta->bindValue(':final', $this->fecha_finalizacion, PDO::PARAM_STR);
             $consulta->execute();
-            $this->id=Pedido::TraerUltimoId();
+
+            $this->id=$objAccesoDatos->obtenerUltimoId();
             $this->CrearListaDetalleInDB();
-            $this->CalcularTiempoEsperado();
-            return "Creando Pedido ID: ". $objAccesoDatos->obtenerUltimoId();
+
+            return "Creando Pedido ID: ". $this->id;
        
     }
     public static function TraerTodos(){
@@ -80,22 +80,9 @@ class Pedido{
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
         $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaId,cliente, estado, codigoAlfa, tiempoPreparacion FROM pedidos");
         $consulta->execute();
-        $recuperados=$consulta->fetchAll(PDO::FETCH_CLASS);
-        $aux;
-        for($i=0; $i<count($recuperados); $i++)
-        {
-            $aux= new Pedido();
-            $aux->id=$recuperados[$i]->id;
-            $aux->cliente=$recuperados[$i]->cliente;
-            $aux->detalle=Detalle::RecuperarDetalle($recuperados[$i]->id);
-            $aux->estado=$recuperados[$i]->estado;
-            $aux->codigoAlfa=$recuperados[$i]->codigoAlfa;
-            $aux->mesaId=$recuperados[$i]->mesaId;
-            $aux->tiempoPreparacion=$recuperados[$i]->tiempoPreparacion;
-            $todos[count($todos)]=$aux;
-        }
-
-        return $todos;
+        $recuperados=$consulta->fetchAll(PDO::FETCH_CLASS, "App\Model\Pedido");
+    
+        return $recuperados;
     }
     public static function TraerUno($id){
         $r=new Pedido();
@@ -103,17 +90,8 @@ class Pedido{
         $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaId,cliente, estado, codigoAlfa, tiempoPreparacion FROM pedidos  where id= :id");
         $consulta->bindValue(':id',$id, PDO::PARAM_INT);
         $consulta->execute();
-        $recuperado=$consulta->fetch(PDO::FETCH_OBJ);
-
-
-        $r->id=$recuperado->id;
-        $r->cliente=$recuperado->cliente;
-        $r->detalle=Detalle::RecuperarDetalle($recuperado->id);
-        $r->estado=$recuperado->estado;
-        $r->codigoAlfa=$recuperado->codigoAlfa;
-        $r->mesaId=$recuperado->mesaId;
-        $r->tiempoPreparacion=$recuperado->tiempoPreparacion;
-        return $r;
+        $consulta->setFetchMode(PDO::FETCH_CLASS, 'App\Model\Pedido');
+        return $consulta->fetch();
     }
 
     public static function CrearConArchivoCSV($file){
@@ -140,21 +118,15 @@ class Pedido{
     }
 
     public static function TraerUnoXCodAlfa($cod){
-        $retorno=new Pedido();
+        
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
         $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaId, estado, codigoAlfa, tiempoPreparacion FROM pedidos  where codigoAlfa= :cod");
         $consulta->bindValue(':cod',$cod, PDO::PARAM_STR);
         $consulta->execute();
-        $recuperado=array();
-        $recuperado=$consulta->fetch(PDO::FETCH_ASSOC);
-        $retorno->id=$recuperado["id"];
-        $retorno->detalle=Detalle::RecuperarDetalle($recuperado["id"]);
-        $retorno->estado=$recuperado["estado"];
-        $retorno->codigoAlfa=$recuperado["codigoAlfa"];
-        $retorno->mesaId=$recuperado["mesaId"];
-        $retorno->tiempoPreparacion=$recuperado["tiempoPreparacion"];
 
-        return $retorno;
+        $recuperado=$consulta->fetch(PDO::FETCH_CLASS,"App\Models\Pedido");
+       
+        return $recuperado;
     }
     public static function TraerUltimoId(){
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
@@ -196,7 +168,7 @@ class Pedido{
         $consulta->bindValue(':id',$codAlf, PDO::PARAM_STR);
         $consulta->execute();
         
-        $aux=$consulta->setFetchMode(PDO::FETCH_CLASS,static::class);
+        $aux=$consulta->setFetchMode(PDO::FETCH_CLASS,"App\Models\Pedido");
         $r=$consulta->fetch();
         Mesa::CambiarEstadoMesa($r->mesaId,"Cliente Comiendo");
         $r->detalle=Detalle::RecuperarDetalle($r->id);
@@ -228,6 +200,9 @@ class Pedido{
         $consulta->bindValue(':id',$id, PDO::PARAM_INT);
         $consulta->bindValue(':demora',$minuntos, PDO::PARAM_INT);
         return $consulta->execute();
+    }
+    public static function ConsultarPedido(){
+        
     }
 
     

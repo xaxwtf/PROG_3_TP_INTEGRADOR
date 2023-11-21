@@ -11,9 +11,11 @@ class UsuarioController
     public function cargarUno($request, $response, $args)
     {
         $accion;
+        $usr;
         
-        if($_FILES["data"]!=null){
-          $accion=Usuario::CrearConArchivoCSV($_FILES["data"]["tmp_name"]);
+        if(isset($_FILES["data"])){
+          $usr=Usuario::CrearConArchivoCSV($_FILES["data"]["tmp_name"]);
+          $accion="usuario Creado con ArchivoCsv";
         }
         else{
           $parametros = $request->getParsedBody();
@@ -31,7 +33,7 @@ class UsuarioController
           $registro->GuardarEnDB();
         }
 
-        $payload = json_encode(array("mensaje" => "Usuario creado con exito"));
+        $payload = json_encode(array("mensaje" => "Usuario creado con exito", "resultado"=>$usr));
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
@@ -42,14 +44,7 @@ class UsuarioController
         $usr = $args['usuario'];
         $usuario = Usuario::TraerUno($usr);
 
-        echo "HACIENDO TEST\n";
-        var_dump($args);
-        echo $usr;
-        echo "\nfin del test!\n";
         $payload = json_encode($usuario);
-
-
-
         $response->getBody()->write($payload);
         return $response
           ->withHeader('Content-Type', 'application/json');
@@ -60,6 +55,7 @@ class UsuarioController
         $lista=Usuario::TraerTodos();
         $payload = json_encode(array("listaUsuario" => $lista));
         $response->getBody()->write($payload);
+
         return $response->withHeader('Content-Type', 'application/json');
     }
     
@@ -215,7 +211,7 @@ class UsuarioController
           break;
       }
       
-      $registro=new Registro($data->id,"el usuario ha tomado el producto pendiente". $uno->producto_id);
+      $registro=new Registro($data->id,"el usuario ha tomado el producto pendiente id_detalle". $uno->producto_id);
       $registro->GuardarEnDB();
       Usuario::CambiarEstadoUsuario($data->id,"Ocupado");
       $payload = json_encode($uno);
@@ -224,13 +220,13 @@ class UsuarioController
   }
   public function FinalizarUnPendiente($request, $response, $args){
     $parametros = $request->getParsedBody();
-    $id = $parametros['id'];
+    $id = $parametros['id_detalle'];
     $aux=Detalle::NotificarFinalizacionDeProducto($id);
 
     $header = $request->getHeaderLine('Authorization');
     if(!empty($header)){
       $data=AutentificadorJWT::ObtenerData($header);
-      $registro=new Registro($data->id,"el usuario ha Notificado la finalizacion del producto pendiente ID:". $id);
+      $registro=new Registro($data->id,"el usuario ha Notificado la finalizacion del producto pendiente ID_Detalle:". $id);
       $registro->GuardarEnDB();
       Usuario::CambiarEstadoUsuario($data->id,"Libre");
     }

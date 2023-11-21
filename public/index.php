@@ -34,6 +34,7 @@ $app->get('[/]', function (Request $request, Response $response) {
 
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
   $group->get('[/]', App\Controller\UsuarioController::class . ':TraerTodos'  )->add(new EsAdmin_Socio)->add(new EstaLogeado);  // socios y admin
+  
   $group->get('/{usuario}', App\Controller\UsuarioController::class . ':TraerUno')->add(new EsAdmin_Socio)->add(new EstaLogeado);//socios y addmin
   $group->post('/perfil', App\Controller\UsuarioController::class . ':Perfil')->add(new EstaLogeado);///solo si hay alguien logeado
   $group->post('[/add]' , App\Controller\UsuarioController::class . ':cargarUno')->add(new EsAdmin_Socio)->add(new EstaLogeado);//socios y admin

@@ -12,20 +12,32 @@ class Usuario{
     public $password;
     public $user;
 
-    public function __construct($id, $fullName, $rol, $password, $user){
-        $this->id=$id;
-        $this->fullName=$fullName;
-        $this->rol= $rol;
-        $this->user=$user;
-        $this->password= password_hash($password, PASSWORD_DEFAULT);
+    public function __construct($id=null, $fullName=null, $rol=null, $password=null, $user=null){
+        if($id!=null){
+            $this->id=$id;
+        }
+        if($fullName!=null){
+            $this->fullName=$fullName;
+        }
+        if($rol!=null){
+            $this->rol= $rol;
+        }
+        if($password!=null){
+            $this->password= password_hash($password, PASSWORD_DEFAULT);
+        }
+        if($user!=null){
+            $this->user=$user;
+        }
     }
     public static function CrearConArchivoCSV($file){
         $lista=ArchivosCSV::LeerArchivoCSV($file);
+        $ret=[];
         foreach($lista as $r){
             $aux=new Usuario(null,$r["0"],$r["1"],$r["2"],$r["3"]);
+            $ret[count($ret)]=$aux;
             $aux->CreateInDB();
         }
-        return "ha cargado datos con un archivo";
+        return $ret;
     }
     public static function DescargarDatosEnCSV($namefile){
         $lista=Usuario::TraerTodos();
@@ -43,13 +55,14 @@ class Usuario{
         $consulta->bindValue(':pass',$this->password, PDO::PARAM_STR);
         $consulta->bindValue(':user',$this->user, PDO::PARAM_STR);
         $consulta->execute();
+        $this->id=$objAccesoDatos->obtenerUltimoId();
         return "Creando Usuario ID: ". $objAccesoDatos->obtenerUltimoId();
     }
     public static function TraerTodos(){
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
         $consulta = $objAccesoDatos->prepararConsulta("SELECT id, fullName, rol, password, user FROM users");
         $consulta->execute();
-        return $consulta->fetchAll(PDO::FETCH_CLASS);
+        return $consulta->fetchAll(PDO::FETCH_CLASS,"App\Model\Usuario");
     }
     public static function TraerUno($id){
         
@@ -57,7 +70,10 @@ class Usuario{
         $consulta = $objAccesoDatos->prepararConsulta("SELECT id, fullName, rol, password, user FROM users  where id= :id");
         $consulta->bindValue(':id',$id, PDO::PARAM_INT);
         $consulta->execute();
-        return $consulta->fetch(PDO::FETCH_CLASS, 'Usuario');
+        
+        $consulta->setFetchMode(PDO::FETCH_CLASS, 'App\Model\Usuario');
+        return $consulta->fetch();
+        
     }
    
     public static function TraerUnoxUserAndPass($user,$pass){

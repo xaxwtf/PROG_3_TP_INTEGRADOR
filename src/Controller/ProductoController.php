@@ -8,27 +8,30 @@ class ProductoController
 {
     public  function CrearUno($request, $response, $args)
     {
-        
+        $producto;
         $accion;
-        $mensaje="Usuario creado con exito";
+        $mensaje="Producto/s creado con exito";
         // Creamos el Producto
         if(isset($_FILES["data"])){
-            $accion=Producto::CrearConArchivoCSV($_FILES["data"]["tmp_name"]);
+            $producto=Producto::CrearConArchivoCSV($_FILES["data"]["tmp_name"]);
+            $mensaje=$mensaje . " con Archivo CSV";
+            $accion="producto/s creado con archivo csv";
         }
         else{
-                      
+            
             $parametros = $request->getParsedBody();
             $descripcion;
             $tipo;
             $timePrepacion;
             $precio;
-            $producto;
+            
             $accion;
-
+           
             if(isset($parametros['descripcion'])){
                 $descripcion = $parametros['descripcion'];
-                
+               
             }
+
             if(isset($parametros['categoria'])){
                 $tipo=$parametros['categoria'];
             }
@@ -50,9 +53,8 @@ class ProductoController
         $registro->GuardarEnDB();
         }
 
-        $payload = json_encode(array("mensaje" => $mensaje));
-        echo $payload;
-        die;
+        $payload = json_encode(array("mensaje" => $mensaje, "resultado"=>$producto));
+        //die;
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
@@ -62,6 +64,18 @@ class ProductoController
         $lista=Producto::TraerTodos();
         $payload = json_encode(array("listaProductos" => $lista));///recupera
         $response->getBody()->write($payload);//escribe
+        echo "\n test\n";
+        var_dump($lista[1]);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+    public function TraerUno($request, $response, $args)
+    {
+        // Buscamos usuario por nombre
+        $usr = $args['id'];
+        $usuario = Producto::TraerUno($usr);
+
+        $payload = json_encode($usuario);
+        $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
 }

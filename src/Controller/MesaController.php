@@ -4,6 +4,7 @@ use App\Model\Usuario;
 use App\Model\Mesa;
 use App\Model\Pedido;
 use App\Model\Informes30;
+use App\Model\Detalle;
 
 class MesaController 
 {
@@ -53,8 +54,8 @@ class MesaController
         
         //Pedido::DescargarDatosEnCSV("TESTEANDOEscribirPedido.CSV");
         //$aux=Informes30::MesaMasUsada();
-
-        $payload = json_encode(array("mensaje" => $aux));
+        $lista=Detalle::ConsultaTodoDetalleDeUnPedido($_POST["test"]);
+        $payload = json_encode(array("resultado" => $lista));
         $response->getBody()->write($payload);//escribe
         return $response->withHeader('Content-Type', 'application/json');
     }

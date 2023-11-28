@@ -43,9 +43,10 @@ class Usuario{
         $lista=Usuario::TraerTodos();
         $contenidoCSV="";
         for($i=0;$i<count($lista);$i++){
-            $contenidoCSV= $contenidoCSV . $lista[$i]->id .",". $lista[$i]->fullName .",". $lista[$i]->rol .",". $lista[$i]->password  .",". $lista[$i]->user ."\n";
+            $contenidoCSV= $contenidoCSV . $lista[$i]->id .",". $lista[$i]->fullName .",". $lista[$i]->rol .",". "N/A" .",". $lista[$i]->user ."   \n";
         }
         ArchivosCSV::EscribirArchivo($namefile,$contenidoCSV);
+        return $contenidoCSV;
     }
     public function CreateInDB(){
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
@@ -70,7 +71,7 @@ class Usuario{
         $consulta = $objAccesoDatos->prepararConsulta("SELECT id, fullName, rol, password, user FROM users  where id= :id");
         $consulta->bindValue(':id',$id, PDO::PARAM_INT);
         $consulta->execute();
-        
+
         $consulta->setFetchMode(PDO::FETCH_CLASS, 'App\Model\Usuario');
         return $consulta->fetch();
         

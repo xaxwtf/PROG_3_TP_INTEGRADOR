@@ -58,6 +58,14 @@ class UsuarioController
 
         return $response->withHeader('Content-Type', 'application/json');
     }
+    public function Descargar($request, $response, $args)
+    {
+        $r=Usuario::DescargarDatosEnCSV("usuarios.csv");
+        $payload = json_encode(array("Descargando Archivo CSV" => $r));
+        $response->getBody()->write($payload);
+
+        return $response->withHeader('Content-Type', 'application/json');
+    }
     
     public function ModificarUno($request, $response, $args)
     {

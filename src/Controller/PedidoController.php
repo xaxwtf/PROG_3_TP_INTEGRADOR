@@ -4,6 +4,7 @@ use App\Model\Pedido;
 use App\Model\Mesa;
 use App\Model\Registro;
 use App\Model\AutentificadorJWT;
+use App\Model\Detalle;
 
 class PedidoController 
 {
@@ -91,18 +92,34 @@ class PedidoController
     public function EntregarPedido($request, $response, $args){
         $parametros = $request->getParsedBody();
         $p = $parametros['codAlf'];
-        $recuperado=Pedido::EntregarPedido($p);
-        $total=Pedido::ObtenerTotal($recuperado->id);
-        
+        $recuperado=Pedido::TraerUnoXCodAlfa($p);
+        //var_dump($recuperado);
+        $total;
+        $respuesta;
         $header = $request->getHeaderLine('Authorization');
         if(!empty($header)){
         $data=AutentificadorJWT::ObtenerData($header);
-        $registro=new Registro($data->id,"el usuario ha entregado el pedido ID:". $recuperado->id);
-        $registro->GuardarEnDB();
+        $registro;
         }
-        Detalle::DeclararListoTodoElDetalle($recuperado->id);
+        $lista=Detalle::ConsultaTodoDetalleDeUnPedido($p);
+        if(count($lista)==0){
+            $total=Pedido::ObtenerTotal($recuperado->id);
+            
+            $test=Pedido::EntregarPedido($p);
+            
+            $registro=new Registro($data->id,"el usuario ha entregado el pedido ID:". $recuperado->id);
+            $respuesta=array("Mensaje"=>"Pedido Entregado","resultado"=> $test, "Total"=>$total);
+        }
+        else{
 
-        $payload = json_encode(array("Pedido Entregado" => $recuperado, "Total"=>$total->total));///recupera
+            $respuesta= array("Mensaje"=>"Error, el Pedido no se puede entregar por que hay productos pendientes", "Detalle"=>$lista);
+            $registro=new Registro($data->id,"el usuario ha entregado el pedido ID:". $recuperado->id);
+        }
+
+        $registro->GuardarEnDB();
+        //Detalle::DeclararListoTodoElDetalle($recuperado->id);
+
+        $payload = json_encode($respuesta);///recupera
         $response->getBody()->write($payload);//escribe
         return $response->withHeader('Content-Type', 'application/json');
     }

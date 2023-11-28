@@ -111,6 +111,13 @@ class Detalle{
         where id_pedido =:idPedido ");
         $consulta->bindValue(':idPedido', $idPedido, PDO::PARAM_INT);
         $consulta->execute();
-        
+    }
+    public  static function ConsultaTodoDetalleDeUnPedido($codAlfa){
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+     
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT detalle.id, detalle.id_pedido, detalle.id_producto, detalle.estado FROM pedidos inner join detalle on pedidos.id = detalle.id_pedido where pedidos.codigoAlfa = :codigoAlfa and detalle.estado='pendiente';");
+        $consulta->bindValue(':codigoAlfa', $codAlfa, PDO::PARAM_INT);
+        $consulta->execute();
+        return $consulta->fetchAll(PDO::FETCH_CLASS, "App\Model\Detalle");
     }
 }

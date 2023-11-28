@@ -74,5 +74,6 @@ class Producto{
             $contenidoCSV= $contenidoCSV . $lista[$i]->id .",". $lista[$i]->descripcion .",". $lista[$i]->tiempo_prom_preparacion .",". $lista[$i]->categoria  .",". $lista[$i]->precio ."\n";
         }
         ArchivosCSV::EscribirArchivo($namefile,$contenidoCSV);
+        return $contenidoCSV;
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Model;
 use App\Db\AccesoDatos;
+
+
 use PDO;
 
 class Pedido{
@@ -15,7 +17,8 @@ class Pedido{
     public $tiempoPreparacion;
     public $fecha_emision;
     public $fecha_finalizacion;
-    public $imagen;
+    //public $imagen;
+    public $demora;
 
     public function __construct(){
         
@@ -78,7 +81,7 @@ class Pedido{
     public static function TraerTodos(){
         $todos=array();
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaId,cliente, estado, codigoAlfa, tiempoPreparacion FROM pedidos");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos");
         $consulta->execute();
         $recuperados=$consulta->fetchAll(PDO::FETCH_CLASS, "App\Model\Pedido");
     
@@ -87,7 +90,7 @@ class Pedido{
     public static function TraerUno($id){
         $r=new Pedido();
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaId,cliente, estado, codigoAlfa, tiempoPreparacion FROM pedidos  where id= :id");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos  where id= :id");
         $consulta->bindValue(':id',$id, PDO::PARAM_INT);
         $consulta->execute();
         $consulta->setFetchMode(PDO::FETCH_CLASS, 'App\Model\Pedido');
@@ -120,13 +123,12 @@ class Pedido{
     public static function TraerUnoXCodAlfa($cod){
         
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaId, estado, codigoAlfa, tiempoPreparacion FROM pedidos  where codigoAlfa= :cod");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos  where codigoAlfa= :cod");
         $consulta->bindValue(':cod',$cod, PDO::PARAM_STR);
         $consulta->execute();
+        $consulta->setFetchMode(PDO::FETCH_CLASS, "App\Model\Pedido");
+        return $consulta->fetch();
 
-        $recuperado=$consulta->fetch(PDO::FETCH_CLASS,"App\Models\Pedido");
-       
-        return $recuperado;
     }
     public static function TraerUltimoId(){
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
@@ -164,11 +166,11 @@ class Pedido{
         $consulta->bindValue(':cod',$codAlf, PDO::PARAM_STR);
         $consulta->execute();
 
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaId, cliente, estado, codigoAlfa, tiempoPreparacion FROM pedidos  where codigoAlfa = :id");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos  where codigoAlfa = :id");
         $consulta->bindValue(':id',$codAlf, PDO::PARAM_STR);
         $consulta->execute();
         
-        $aux=$consulta->setFetchMode(PDO::FETCH_CLASS,"App\Models\Pedido");
+        $aux=$consulta->setFetchMode(PDO::FETCH_CLASS,"App\Model\Pedido");
         $r=$consulta->fetch();
         Mesa::CambiarEstadoMesa($r->mesaId,"Cliente Comiendo");
         $r->detalle=Detalle::RecuperarDetalle($r->id);
@@ -183,7 +185,7 @@ class Pedido{
         $consulta->bindValue(':ahora',$ahora, PDO::PARAM_STR);
         $consulta->execute();
 
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaId, cliente, estado, codigoAlfa, tiempoPreparacion FROM pedidos  where codigoAlfa = :id");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id,  mesaid, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos  where codigoAlfa = :id");
         $consulta->bindValue(':id',$codAlf, PDO::PARAM_STR);
         $consulta->execute();
         
@@ -201,9 +203,4 @@ class Pedido{
         $consulta->bindValue(':demora',$minuntos, PDO::PARAM_INT);
         return $consulta->execute();
     }
-    public static function ConsultarPedido(){
-        
-    }
-
-    
 }

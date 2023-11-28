@@ -34,7 +34,8 @@ $app->get('[/]', function (Request $request, Response $response) {
 
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
   $group->get('[/]', App\Controller\UsuarioController::class . ':TraerTodos'  )->add(new EsAdmin_Socio)->add(new EstaLogeado);  // socios y admin
-  
+  $group->get('/CSV',App\Controller\UsuarioController::class . ':Descargar'  )->add(new EsAdmin_Socio)->add(new EstaLogeado);  // socios y admin
+
   $group->get('/{usuario}', App\Controller\UsuarioController::class . ':TraerUno')->add(new EsAdmin_Socio)->add(new EstaLogeado);//socios y addmin
   $group->post('/perfil', App\Controller\UsuarioController::class . ':Perfil')->add(new EstaLogeado);///solo si hay alguien logeado
   $group->post('[/add]' , App\Controller\UsuarioController::class . ':cargarUno')->add(new EsAdmin_Socio)->add(new EstaLogeado);//socios y admin
@@ -50,6 +51,7 @@ $app->group('/pendientes', function (RouteCollectorProxy $group) {
 
 $app->group('/productos', function (RouteCollectorProxy $group) {
   $group->get('[/]', App\Controller\ProductoController::class . ':TraerTodos' )->add(new EsAdmin_Socio_Mozo)->add(new EstaLogeado);//socios, admin y mozo
+  $group->get('/CSV', App\Controller\ProductoController::class . ':Descargar' )->add(new EsAdmin_Socio_Mozo)->add(new EstaLogeado);
   $group->post('[/add]', App\Controller\ProductoController::class . ':CrearUno')->add(new EsAdmin_Socio)->add(new EstaLogeado); //socios y admin  
   $group->get('/{id}', App\Controller\ProductoController::class . ':TraerUno' )->add(new EsAdmin_Socio_Mozo)->add(new EstaLogeado); // socios, admin y mozo
 });

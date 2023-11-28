@@ -24,12 +24,10 @@ class ProductoController
             $tipo;
             $timePrepacion;
             $precio;
-            
             $accion;
            
             if(isset($parametros['descripcion'])){
                 $descripcion = $parametros['descripcion'];
-               
             }
 
             if(isset($parametros['categoria'])){
@@ -76,6 +74,14 @@ class ProductoController
 
         $payload = json_encode($usuario);
         $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+    public function Descargar($request, $response, $args)
+    {
+        $r=Producto::DescargarDatosEnCSV("productos.csv");
+        $payload = json_encode(array("Descargando Archivo CSV" => $r));
+        $response->getBody()->write($payload);
+
         return $response->withHeader('Content-Type', 'application/json');
     }
 }

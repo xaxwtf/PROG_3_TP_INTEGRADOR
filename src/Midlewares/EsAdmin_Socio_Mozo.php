@@ -15,7 +15,8 @@ class EsAdmin_Socio_Mozo{
             $response= new Response();
             $autorizacion = $request->getHeaderLine('Authorization');//recupero el token de autorizacion
             $data=AutentificadorJWT::ObtenerData($autorizacion);
-            if($data->rol=="Admin" || $data->rol=="Socio" || $data=="Mozo"){
+            
+            if($data->rol=="Admin" || $data->rol=="Socio" || $data->rol =="Mozo"){
                 
                 $response=$handler->handle($request);//INVOCA AL SIGUIENTE MIDDLEWARE;
             }

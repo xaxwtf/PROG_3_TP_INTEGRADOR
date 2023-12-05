@@ -32,6 +32,7 @@ class Encuesta{
         $consulta->bindValue(':pRest',  $this->puntuacionRestaurant, PDO::PARAM_INT);
         $consulta->bindValue(':cod', $this->codigoPedido, PDO::PARAM_STR);
         $consulta->execute();
+        $this->id=$objAccesoDatos->obtenerUltimoId();
     }
     public function setPMesa($puntuacion){
         $r=false;

@@ -5,6 +5,8 @@ use App\Model\Mesa;
 use App\Model\Pedido;
 use App\Model\Informes30;
 use App\Model\Detalle;
+use App\Model\AutentificadorJWT;
+use App\Model\Registro;
 
 class MesaController 
 {

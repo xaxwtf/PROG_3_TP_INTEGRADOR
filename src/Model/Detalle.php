@@ -66,8 +66,19 @@ class Detalle{
         where productos.categoria=:cat  and detalle.estado = 'pendiente'" );
         $consulta->bindValue(":cat",$categoriaProducto, PDO::PARAM_STR);
         $consulta->execute();
-        $consulta->setFetchMode(PDO::FETCH_CLASS, 'App\Model\Detalle');
-        return $consulta->fetch();
+        $consulta->setFetchMode(PDO::FETCH_CLASS, 'App\Model\Detalle');//deberias hacer un update "en preparacion
+        $aux=$consulta->fetch();
+       
+        $r=null;
+        if(isset($aux->id_detalle)){
+            $consulta = $objAccesoDatos->prepararConsulta(" UPDATE detalle set estado = 'enPreparacion'
+            where id =:iddetalle ");
+            $consulta->bindValue(':iddetalle', $aux->id_detalle, PDO::PARAM_INT);
+            $consulta->execute();
+            $r=$aux;
+        }
+        return $r;
+        
         
     }
     public static function NotificarFinalizacionDeProducto($id){
@@ -75,10 +86,14 @@ class Detalle{
         $consulta = $objAccesoDatos->prepararConsulta("UPDATE tp_integrador.detalle SET estado = 'listo' WHERE (id = :id)");
         $consulta->bindValue(':id', $id, PDO::PARAM_INT);
         $consulta->execute();
-        $r=false;
+        $r=-1;
         if($consulta->rowCount()>0){
-            $r=true;
-        }
+            $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM tp_integrador.detalle where id=:id");
+            $consulta->bindValue(':id', $id, PDO::PARAM_INT);
+            $consulta->execute();
+            $aux=$consulta->fetch();
+            $r=$aux["id_pedido"];
+        }   
         return $r;
     }
     public static function ObtenerProductosDeCsvString($string){

@@ -5,6 +5,7 @@ use App\Model\Usuario;
 use App\Model\AutentificadorJWT;
 use App\Model\Detalle;
 use App\Model\Registro;
+use App\Model\Pedido;
 
 class UsuarioController 
 {
@@ -218,11 +219,15 @@ class UsuarioController
           }
           break;
       }
+      $payload = json_encode(array("resultado" =>"no hay pendientes"));
       
-      $registro=new Registro($data->id,"el usuario ha tomado el producto pendiente id_detalle". $uno->producto_id);
-      $registro->GuardarEnDB();
-      Usuario::CambiarEstadoUsuario($data->id,"Ocupado");
-      $payload = json_encode($uno);
+      if(isset($uno)){
+        $registro=new Registro($data->id,"el usuario ha tomado el producto pendiente id_detalle". $uno->producto_id);
+        $registro->GuardarEnDB();
+        Usuario::CambiarEstadoUsuario($data->id,"Ocupado");
+        $payload = json_encode(array("resultado" =>$uno));
+      }
+      
       $response->getBody()->write($payload);
       return $response->withHeader('Content-Type', 'application/json');
   }
@@ -230,7 +235,15 @@ class UsuarioController
     $parametros = $request->getParsedBody();
     $id = $parametros['id_detalle'];
     $aux=Detalle::NotificarFinalizacionDeProducto($id);
-
+    
+    if($aux!=-1){
+      Pedido::CalcularTiempoEsperado($aux);///vuelvo a calcuar el tiempo esperado en la DB
+      Pedido::VerificarEstadoDelPedido($aux);
+      $payload = json_encode(array("idPedido" =>$aux, "idDetalle"=> $id));
+    }
+    else{
+      $payload = json_encode(array("Error" =>"no se ha encontrado el Pediente que desea finalizar"));
+    }
     $header = $request->getHeaderLine('Authorization');
     if(!empty($header)){
       $data=AutentificadorJWT::ObtenerData($header);
@@ -240,7 +253,7 @@ class UsuarioController
     }
     
 
-    $payload = json_encode(array("PRODUCTO TERMINADO" =>$aux));
+    
     $response->getBody()->write($payload);
     return $response->withHeader('Content-Type', 'application/json');
 }

@@ -4,18 +4,22 @@ use App\Model\Usuario;
 use App\Model\Mesa;
 use App\Model\Pedido;
 use App\Model\Informes30;
+use App\Model\fpdf\FPDF;
+
 
 class InformeController 
 {
     public  function GenerarLogo($request, $response, $args)
     {
-        // Creamos la mesa
-        Informes30::Logo();
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        $pdf->SetFont('Arial','B',20);
+        $pdf->Cell(70,20,'!LA COMADA!');
+        $pdf->Image("obligame.jpg",70, 40, -400);
+    
+        $pdf->Output("D","test.pdf");
+        
 
-        $payload = json_encode(array("mensaje" => "LOGO creado con exito"));
-        $response->getBody()->write($payload);
-        return $response
-          ->withHeader('Content-Type', 'application/json');
     }
 
     public  function MejoresEncuestas($request, $response, $args)

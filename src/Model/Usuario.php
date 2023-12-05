@@ -83,6 +83,7 @@ class Usuario{
         $consulta->bindValue(':user',$user, PDO::PARAM_STR);
         $consulta->execute();
         $rec=$consulta->fetch(PDO::FETCH_ASSOC);
+        
         $r=null;
         if( password_verify( $pass, $rec['password'])){
             $r= $rec;

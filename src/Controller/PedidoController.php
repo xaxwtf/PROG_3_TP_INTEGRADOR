@@ -93,7 +93,7 @@ class PedidoController
         $parametros = $request->getParsedBody();
         $p = $parametros['codAlf'];
         $recuperado=Pedido::TraerUnoXCodAlfa($p);
-        //var_dump($recuperado);
+        
         $total;
         $respuesta;
         $header = $request->getHeaderLine('Authorization');
@@ -127,7 +127,7 @@ class PedidoController
         $parametros = $request->getParsedBody();
         $p = $parametros['codAlf'];
         $recuperado=Pedido::CobrarPedido($p);
-        $total=$recuperado->btenerTotal();
+        $total=Pedido::ObtenerTotal($recuperado->id);
         $header = $request->getHeaderLine('Authorization');
         if(!empty($header)){
         $data=AutentificadorJWT::ObtenerData($header);
@@ -156,4 +156,31 @@ class PedidoController
         $response->getBody()->write($payload);//escribe
         return $response->withHeader('Content-Type', 'application/json');
     }
+    public function ConsultarDemora($request, $response, $args){
+        $parametros = $request->getParsedBody();
+        $resultado=Pedido::TraerUnoXCodAlfa($parametros["codAlf"]);
+        $payload = json_encode(array("Mensaje" => "Error, pedido no encontrado"));///recupera
+       
+        if($resultado!=null && $resultado->mesaId == $parametros["nroMesa"]){
+            
+            $payload = json_encode(array("tiempoEsperado" => $resultado->tiempoPreparacion));///recupera
+        }
+        
+        $response->getBody()->write($payload);//escribe
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+    public function ListarPedidosListos($request, $response, $args){
+        $lista=Pedido::TraerTodosListos();
+        $payload = json_encode(array("listaPedidosListoParaEntregar" => $lista));///recupera
+        $response->getBody()->write($payload);//escribe
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+    public function ListarPedidosEntregadorConDemora($request, $response, $args){
+        
+        $lista=Pedido::TraerTodosEntregadosConDemora();
+        $payload = json_encode(array("listaPedidosConDemora" => $lista));///recupera
+        $response->getBody()->write($payload);//escribe
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+    
 }

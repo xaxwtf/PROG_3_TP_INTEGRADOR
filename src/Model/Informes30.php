@@ -3,22 +3,23 @@ namespace App\Model;
 use App\Model;
 use App\Db\AccesoDatos;
 use PDO;
+use App\Model\fpdf\FPDF;
+//use App\Model\fpdf\Exception;
 // create document
 
 
 class Informes30{
 
     public static function Logo(){
-        try{
-            $mpdf = new \Mpdf\Mpdf();
-            $mpdf->WriteHTML('LA COMADA');
-            $mpdf->WriteHTML('<div>TP integrador</div>');
-            $r=$mpdf->Output("laComanda.pdf");
-        } 
-        catch(\Mpdf\MpdfException $e){
-            echo $e->getMessage();
-        }  
         
+            $pdf = new FPDF();
+            $pdf->AddPage();
+            $pdf->SetFont('Arial','B',20);
+            $pdf->Cell(40,10,'¡LA COMADA!');
+            $pdf->AddPage();
+            $pdf->SetFont('Arial','B',20);
+            $pdf->Cell(40,10,'¡otra!');
+            $pdf->Output("D", "test.pdf");
     }
     public static function MejoresEncuestas(){
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
@@ -33,7 +34,9 @@ class Informes30{
         group by (mesaId)");
         $consulta->execute();
         $resultado = $consulta->fetchAll(PDO::FETCH_OBJ);
+        //echo json_encode(array("test"=>$resultado));
         $max=$resultado[0];
+        //var_dump($resultado[0]->vecesUsada);
         foreach($resultado as $uno){
             if($uno->vecesUsada>$max->vecesUsada){
                 $max=$uno->vecesUsada;

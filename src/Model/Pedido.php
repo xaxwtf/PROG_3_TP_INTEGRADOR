@@ -24,7 +24,7 @@ class Pedido{
         
         
     }
-    public static function ObtenerTotal($idPedido){
+    public static function ObtenerTotal($idPedido){//usado?
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
         $consulta = $objAccesoDatos->prepararConsulta("SELECT pedidos.id, pedidos.codigoAlfa, sum(productos.precio) as total  FROM tp_integrador.pedidos
         inner join detalle on detalle.id_pedido=pedidos.id
@@ -35,20 +35,31 @@ class Pedido{
         return $consulta->fetch(PDO::FETCH_OBJ);
     }
 
-    public function CalcularTiempoEsperado(){ ///solo lo usare al subir el detalle
+    public static function CalcularTiempoEsperado($idPedido){ ///solo lo usare al subir el detalle
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
         $consulta = $objAccesoDatos->prepararConsulta("UPDATE Pedidos
         inner join (
             SELECT detalle.id_Pedido as pedido , sum(productos.tiempo_prom_preparacion) as tiempo
             FROM detalle
-            inner join productos on detalle.id_producto=productos.id
+            inner join productos on detalle.id_producto=productos.id and detalle.estado='pendiente'
             group by(pedido)
             ) as t2 on pedidos.id=t2.pedido
             set pedidos.tiempoPreparacion=t2.tiempo
-            where pedidos.id=:idPedido");
-        $consulta->bindValue(':idPedido', $this->id , PDO::PARAM_INT);
-        $consulta->execute();
-        return $consulta->fetchAll(PDO::FETCH_OBJ);
+            where pedidos.id=:idPedido" );
+        $consulta->bindValue(':idPedido', $idPedido , PDO::PARAM_INT); 
+        $aux=$consulta->execute();
+
+        if($aux){
+            $filasAfectadas = $consulta->rowCount();
+            if (!$filasAfectadas > 0) {
+                $consulta = $objAccesoDatos->prepararConsulta("UPDATE Pedidos
+                    set pedidos.tiempoPreparacion=0
+                    where pedidos.id=:idPedido" );
+                    $consulta->bindValue(':idPedido', $idPedido , PDO::PARAM_INT); 
+                    $aux=$consulta->execute();
+            }
+        }
+
     }
 
     private function CrearListaDetalleInDB(){
@@ -59,7 +70,7 @@ class Pedido{
     }
 
     public function CreateInDB(){
-            $this->CalcularTiempoEsperado();
+            
             //$this->fecha_emision= date("Y-m-d H:i:s");
             $objAccesoDatos = AccesoDatos::obtenerInstancia();
             $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO pedidos (mesaid, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion) VALUES ( :mesaId, :cliente, :estado, :codigoAlfa, :tiempoPreparacion, :emision, :final)");
@@ -67,21 +78,38 @@ class Pedido{
             $consulta->bindValue(':cliente', $this->cliente, PDO::PARAM_STR);
             $consulta->bindValue(':estado', $this->estado, PDO::PARAM_STR);
             $consulta->bindValue(':codigoAlfa', $this->codigoAlfa, PDO::PARAM_STR);
-            $consulta->bindValue(':tiempoPreparacion', 0, PDO::PARAM_INT);
+            $consulta->bindValue(':tiempoPreparacion', 0, PDO::PARAM_STR);
             $consulta->bindValue(':emision', $this->fecha_emision, PDO::PARAM_STR);
             $consulta->bindValue(':final', $this->fecha_finalizacion, PDO::PARAM_STR);
             $consulta->execute();
 
             $this->id=$objAccesoDatos->obtenerUltimoId();
             $this->CrearListaDetalleInDB();
-
+            Pedido::CalcularTiempoEsperado($this->id);
             return "Creando Pedido ID: ". $this->id;
        
     }
     public static function TraerTodos(){
-        $todos=array();
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid as mesaId, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos");
+        $consulta->execute();
+        $recuperados=$consulta->fetchAll(PDO::FETCH_CLASS, "App\Model\Pedido");
+    
+        return $recuperados;
+    }
+    public static function TraerTodosListos(){
+        
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid as mesaId, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos where estado='listo'");
+        $consulta->execute();
+        $recuperados=$consulta->fetchAll(PDO::FETCH_CLASS, "App\Model\Pedido");
+    
+        return $recuperados;
+    }
+     public static function TraerTodosEntregadosConDemora(){
+        
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid as mesaId, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos where estado='entregado' and demora!=0");
         $consulta->execute();
         $recuperados=$consulta->fetchAll(PDO::FETCH_CLASS, "App\Model\Pedido");
     
@@ -90,7 +118,7 @@ class Pedido{
     public static function TraerUno($id){
         $r=new Pedido();
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos  where id= :id");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid as mesaId, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos  where id= :id");
         $consulta->bindValue(':id',$id, PDO::PARAM_INT);
         $consulta->execute();
         $consulta->setFetchMode(PDO::FETCH_CLASS, 'App\Model\Pedido');
@@ -123,7 +151,7 @@ class Pedido{
     public static function TraerUnoXCodAlfa($cod){
         
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos  where codigoAlfa= :cod");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid as mesaId, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos  where codigoAlfa= :cod");
         $consulta->bindValue(':cod',$cod, PDO::PARAM_STR);
         $consulta->execute();
         $consulta->setFetchMode(PDO::FETCH_CLASS, "App\Model\Pedido");
@@ -166,7 +194,7 @@ class Pedido{
         $consulta->bindValue(':cod',$codAlf, PDO::PARAM_STR);
         $consulta->execute();
 
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos  where codigoAlfa = :id");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, mesaid as mesaId, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos  where codigoAlfa = :id");
         $consulta->bindValue(':id',$codAlf, PDO::PARAM_STR);
         $consulta->execute();
         
@@ -185,7 +213,7 @@ class Pedido{
         $consulta->bindValue(':ahora',$ahora, PDO::PARAM_STR);
         $consulta->execute();
 
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id,  mesaid, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos  where codigoAlfa = :id");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id,  mesaid as mesaId, cliente, estado, codigoAlfa, tiempoPreparacion, fecha_emision, fecha_finalizacion, demora FROM pedidos  where codigoAlfa = :id");
         $consulta->bindValue(':id',$codAlf, PDO::PARAM_STR);
         $consulta->execute();
         
@@ -201,6 +229,12 @@ class Pedido{
         $consulta = $objAccesoDatos->prepararConsulta("UPDATE tp_integrador.pedidos SET tp_integrador.pedidos.tiempoPreparacion = tp_integrador.pedidos.tiempoPreparacion + :demora, tp_integrador.pedidos.demora =:demora  WHERE id = :id");
         $consulta->bindValue(':id',$id, PDO::PARAM_INT);
         $consulta->bindValue(':demora',$minuntos, PDO::PARAM_INT);
+        return $consulta->execute();
+    }
+    public static function VerificarEstadoDelPedido($idPedido){
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("UPDATE tp_integrador.pedidos SET estado='listo' where id=:id and tiempoPreparacion=0");
+        $consulta->bindValue(':id',$idPedido, PDO::PARAM_INT);
         return $consulta->execute();
     }
 }

@@ -17,7 +17,8 @@ class InformeController
         $pdf->Cell(70,20,'!LA COMADA!');
         $pdf->Image("obligame.jpg",70, 40, -400);
     
-        $pdf->Output("D","test.pdf");
+        $pdf->Output("F","logo.pdf");
+        $pdf->Output();
         
 
     }
